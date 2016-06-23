@@ -27,7 +27,13 @@ class ZHIHUSpider:
             print("已经抓取:" + str(cnt) + "正在抓取--->" + url)
             cnt += 1
             req = urllib.request.Request(url,headers = self.headers)
-            urlop = urllib.request.urlopen(req)
+
+            try:
+                urlop = urllib.request.urlopen(req)
+            except:
+                print("页面打开异常")
+                continue
+
             if ("html" not in urlop.getheader("Content-Type")):
                continue
             #避免程序异常中止, 用try..catch处理异常
