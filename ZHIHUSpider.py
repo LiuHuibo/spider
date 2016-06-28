@@ -28,7 +28,7 @@ class ZHIHUSpider:
 
         self.url_login="http://www.zhihu.com/login/email"
         self.email="fly8421@outlook.com"
-        self.passwd="33614793"
+        self.passwd="123456"
         self.captcha_type="cn"
         self.remember_me="true"
         self._xsrf= None
