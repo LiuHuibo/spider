@@ -4,6 +4,7 @@ import re
 from collections import deque
 import urllib
 import socket
+import http.cookiejar
 try:
     # For Python 3.0 and later
     import urllib.parse
@@ -34,13 +35,20 @@ class ZHIHUSpider:
         self._xsrf= None
         self.post = None
 
+        self.cookie = http.cookiejar.CookieJar()
+        self.opener  = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookie))
+
+
+
+
         #_xsrf=0e55d862d9d880808a8e93c01c4a7368&password=123456&captcha_type=cn&remember_me=true&email=fly8421%40outlook.com
         #self.cookie = cookielib.LWPCookieJar()
         #self.cookieHandler = urllib2.HTTPCookieProcessor(self.cookie)
     def getLoginPara(self):
+
         reqLogin = urllib.request.Request(self.url_login_info,headers = self.headers)
         try:
-            urloplogin = urllib.request.urlopen(reqLogin)
+            urloplogin = self.opener.open(reqLogin)
         except:
             print("主页访问异常")
             return None
@@ -49,20 +57,27 @@ class ZHIHUSpider:
             print("头部异常")
             return None
 
-        try:
-            data = urloplogin.read().decode("utf-8")
-            print(data)
-        except:
-            print("解码异常")
-            return None
+        for item in self.cookie:
+            print('Name = ' + item.name)
+            print('Value = ' + item.value)
+            if(item.name == "_xsrf"):
+                self._xsrf = item.value
+        return self._xsrf
 
-        searchObj = re.search( r'<input type="hidden" name="_xsrf" value="(.+?)"/>', data, re.M|re.I)
-        if searchObj:
-            print ("search --> searchObj.group(1) : ", searchObj.group(1))
-            return searchObj.group(1)
-        else:
-            print ("Nothing Found！")
-            return None
+        # try:
+        #     data = urloplogin.read().decode("utf-8")
+        #     print(data)
+        # except:
+        #     print("解码异常")
+        #     return None
+
+        # searchObj = re.search( r'<input type="hidden" name="_xsrf" value="(.+?)"/>', data, re.M|re.I)
+        # if searchObj:
+        #     print ("search --> searchObj.group(1) : ", searchObj.group(1))
+        #     return searchObj.group(1)
+        # else:
+        #     print ("Nothing Found！")
+        #     return None
 
 
     #登录知乎
@@ -81,7 +96,8 @@ class ZHIHUSpider:
 
         self.post_data = urllib.parse.urlencode(self.post).encode(encoding='UTF8')
         req = urllib.request.Request(self.url_login, self.post_data, self.headers)
-        response = urllib.request.urlopen(req)
+        #response = urllib.request.urlopen(req)
+        response = self.opener.open(req)
         result = response.read().decode("utf-8")
         return result
 
