@@ -1,10 +1,18 @@
 #!usr/bin/python
-#coding=utf8
+#coding=UTF-8
 import re
-from collections import deque
 import urllib
 import socket
 import http.cookiejar
+import json
+import gzip
+import configparser
+import requests
+import pprint
+import collections 
+#import localcookies
+
+
 try:
     # For Python 3.0 and later
     import urllib.parse
@@ -13,9 +21,18 @@ except ImportError:
     # Fall back to Python 2's urllib2
     from urllib2 import urlopen
 
+def ungzip(data):
+    try:        # 尝试解压
+        print('正在解压.....')
+        data=gzip.decompress(data)
+        print('解压完毕!')
+    except:
+        print('未经压缩, 无需解压')
+    return data
+
 class ZHIHUSpider:
     def __init__(self):
-        self.queue = deque()
+        self.queue = collections.deque()
         self.visited = set()
         self.url_base = "https://www.zhihu.com/people"
         self.url_login_info="https://www.zhihu.com"
@@ -24,9 +41,18 @@ class ZHIHUSpider:
         self.url_followers_suffix="followers"
         self.url_about_suffix="about"
         self.user_agent = "Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)"
-        self.headers = { 'User-Agent' : self.user_agent }
+        #self.headers = { 'User-Agent' : self.user_agent }
+        self.headers = {
+            'Connection':'keep-alive',
+            'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Encoding':'gzip, deflate, sdch, br',
+            'Accept-Language':'zh-CN,zh;q=0.8',
+            'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+            'Host':'www.zhihu.com',
+            'Upgrade-Insecure-Requests':1
+            }
         self.queue.append(self.url_id)
-
+        self.captcha_pre="https://www.zhihu.com/captcha.gif?r="
         self.url_login="http://www.zhihu.com/login/email"
         self.email="fly8421@outlook.com"
         self.passwd="123456"
@@ -34,21 +60,93 @@ class ZHIHUSpider:
         self.remember_me="true"
         self._xsrf= None
         self.post = None
+        self.cookies = None
+        self.cj = http.cookiejar.CookieJar()
+        #self.cookies = http.cookiejar.CookieJar()
+        #self.opener  = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookies))
+        #self.opener.addheaders = [('User-agent', 'Opera/9.23')]
+        #self.opener.addheaders = self.headers
+        #urllib.request.install_opener(self.opener)
 
-        self.cookie = http.cookiejar.CookieJar()
-        self.opener  = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookie))
+
 
 
 
 
         #_xsrf=0e55d862d9d880808a8e93c01c4a7368&password=123456&captcha_type=cn&remember_me=true&email=fly8421%40outlook.com
-        #self.cookie = cookielib.LWPCookieJar()
-        #self.cookieHandler = urllib2.HTTPCookieProcessor(self.cookie)
+        #self.cookies = cookielib.LWPCookieJar()
+        #self.cookieHandler = urllib2.HTTPCookieProcessor(self.cookies)
+
+    #get captcha
+    def read_config(self):
+        section_re = re.compile(r"^\s*\[([^\s]+?)\]\s*$") 
+        item_re=re.compile(r"^\s*([^\s]+?)\s*=\s*([^\s]+?)\s*$") 
+        section = None
+        item_name = None
+        item_value = None
+        d1 = collections.defaultdict(list)
+        d  = collections.defaultdict(list)
+        flag = 0
+        f = open("config.ini")
+        for  line in  f.readlines(): 
+            #print("line is-->" + line)
+            secobj = section_re.match(line)
+            if secobj:
+                if(flag == 0):
+                    flag = 1
+                    section = secobj.group(1)
+                else :
+                    d1[section].append(d)
+                    #print(section+"此时seciton的内容-->")
+                    list(d.items())
+                    d = collections.defaultdict(list)
+                    section = secobj.group(1)
+                #print("匹配到section:"+section)
+                continue
+
+            itemobj = item_re.match(line)
+            if itemobj:
+                item_name = itemobj.group(1)
+                item_value = itemobj.group(2)
+                d[item_name].append(item_value)
+                #print("item_name:"+item_name+",item_value:"+item_value)
+
+        f.close()
+        d1[section].append(d)
+        print("all info from config.ini")
+        for key1,value1 in d1.items():
+            print(key1,value1)
+
+        cf = d1
+        self.cookies = collections.defaultdict(list)(d1.items["cookie"])
+        info_config = collections.defaultdict(list)(d1.items["info"])
+        self.email = info_config.get("email")
+        self.passwd = info_config.get("passwd")
+        #self._xsrf = info_config.get("_xsrf")
+
+    def read_config_parser(self):
+        cf = configparser.ConfigParser()
+        cf.read('config.ini')
+        cookie_config = cf.items('cookie')
+        self.cookies = dict(cookie_config)
+        self.email = cf.get('info','email')
+        self.passwd = cf.get('info','passwd')
+        #self._xsrf = cf.get('cookie','_xsrf')
+
+
+    def read_chrome_cookie(self):
+        self.cookies=localcookies.get_chrome_cookies(".zhihu.com")
+
+    def get_captcha(self):
+        captchaurl = captcha_pre + str(int(time.time()*1000))+"&type=login"
+        #1467455728504&type=login"
+        print(captchaurl)
+
+        return captcha
     def getLoginPara(self):
 
-        reqLogin = urllib.request.Request(self.url_login_info,headers = self.headers)
         try:
-            urloplogin = self.opener.open(reqLogin)
+            urloplogin = self.opener.open(self.url_login_info)
         except:
             print("主页访问异常")
             return None
@@ -57,33 +155,34 @@ class ZHIHUSpider:
             print("头部异常")
             return None
 
-        for item in self.cookie:
-            print('Name = ' + item.name)
-            print('Value = ' + item.value)
-            if(item.name == "_xsrf"):
-                self._xsrf = item.value
-        return self._xsrf
+        # for item in self.cookies:
+        #     print('Name = ' + item.name)
+        #     print('Value = ' + item.value)
+        #     if(item.name == "_xsrf"):
+        #         self._xsrf = item.value
+        # return self._xsrf
 
-        # try:
-        #     data = urloplogin.read().decode("utf-8")
-        #     print(data)
-        # except:
-        #     print("解码异常")
-        #     return None
+        try:
+            data = urloplogin.read().decode("utf-8")
+            print(data)
+        except:
+            print("解码异常")
+            return None
 
-        # searchObj = re.search( r'<input type="hidden" name="_xsrf" value="(.+?)"/>', data, re.M|re.I)
-        # if searchObj:
-        #     print ("search --> searchObj.group(1) : ", searchObj.group(1))
-        #     return searchObj.group(1)
-        # else:
-        #     print ("Nothing Found！")
-        #     return None
+        searchObj = re.search( r'<input type="hidden" name="_xsrf" value="(.+?)"/>', data, re.M|re.I)
+        if searchObj:
+            print ("search --> searchObj.group(1) : ", searchObj.group(1))
+            return searchObj.group(1)
+        else:
+            print ("Nothing Found！")
+            return None
 
 
     #登录知乎
     def login(self):
 
         self._xsrf = self.getLoginPara()
+        print("_xsrf--->"+self._xsrf)
         if(self._xsrf == None):
             return None
         self.post= {
@@ -94,11 +193,31 @@ class ZHIHUSpider:
             'email':self.email
         }
 
-        self.post_data = urllib.parse.urlencode(self.post).encode(encoding='UTF8')
-        req = urllib.request.Request(self.url_login, self.post_data, self.headers)
+        self.post_data = urllib.parse.urlencode(self.post).encode(encoding='utf-8')
+        response = self.opener.open(self.url_login, self.post_data)
         #response = urllib.request.urlopen(req)
-        response = self.opener.open(req)
-        result = response.read().decode("utf-8")
+        
+        #
+        #response = urllib.request.urlopen(req)
+        #response = self.opener.open(req)
+
+        #data = response.read()
+        #data = ungzip(data).decode("utf-8")
+        #print(data)
+        print("response-->"+response.read().decode("utf-8"))
+        result = str(response.info())
+        print("response.info-->>" + result)
+
+
+        # print("result-->"+result)
+        # result2 = response.geturl()
+        # print("result2:"+result2)
+        # print("code:"+str(response.getcode()))
+        # print("info:"+str(response.info()))
+        # data = json.dumps(str(response.info()))
+        # print("python原始数据:"+repr(data))
+        # print("python对象"+data)
+        # dir(response)
         return result
 
     def getFolloweesUrl(self, urlid):
@@ -170,24 +289,113 @@ class ZHIHUSpider:
 
         return 0
 
+    def create_session(self):
+        self.read_config()
+        #self.read_chrome_cookie()
+        #pprint(self.cookies)
+        print("self.email-->"+self.email)
+        print("self.passwd-->"+self.passwd)
+        session = requests.session()
+        self.post= {
+            '_xsrf':self._xsrf,
+            'password':self.passwd,
+            'captcha_type':self.captcha_type,
+            'remember_me':self.remember_me,
+            'email':self.email
+        }
+        self.post_data = urllib.parse.urlencode(self.post).encode(encoding='utf-8')
+        r = session.post(self.url_login, data=self.post_data, headers=self.headers)
+        #print("r-->"+r)
+        if r.json()['r'] == 1:
+            print ('Login Failed, reason is:')
+            for m in r.json()['data']:
+                print(r.json()['data'][m])
+            print('So we use cookies to login in...')
+            has_cookies = False
+            for key in self.cookies:
+                if key != '__name__' and self.cookies[key] != '':
+                    has_cookies = True
+                    break
+        if has_cookies is False:
+            raise ValueError('请填写config.ini文件中的cookies项.')
+        else:
+            # r = requests.get('http://www.zhihu.com/login/email', cookies=cookies) # 实现验证码登陆
+            r = session.get('http://www.zhihu.com/login/email', cookies=self.cookies,verify=False) # 实现验证码登陆
+            print("r-->"+str(r.content))
+
+        #self.post_data = urllib.parse.urlencode(self.post).encode(encoding='utf-8')
+        #response = self.opener.open(self.url_login, self.post_data)
+        #response = urllib.request.urlopen(req)
+    def create_session_nologin(self):
+        self.read_config_parser()
+        #self.read_chrome_cookie()
+        pprint.pprint(dict(self.cookies))
+        print("self.email-->"+self.email)
+        print("self.passwd-->"+self.passwd)
+        session = requests.session()
+        r = session.get('http://www.zhihu.com', cookies=self.cookies,headers=self.headers,verify=False) # 实现验证码登陆
+        print("r.ending:"+r.encoding)
+        #r.encoding='utf-8'
+        #先用requests默认的编码方式解码r.content,解码后编码成"utf-8"
+        #data为bytes直接输出中文为数字字符的形势，故需要解码成gbk格式
+        #UnicodeEncodeError: 'gbk' codec can't encode character '\u2022' in position 29215: illegal multibyte sequence
+        #表明打印的时候需要自动转为gbk编码
+        #因此可以简化为下面的一步即可：
+        #注意：bytes会自动编码为unicode('utf-8')
+        #不要直接用str对bytes进行转换，中文字符会变成编码格式
+        # if( r != None ):
+        #     print("status code:"+str(r.status_code))
+        #     data = ((r.content).decode(r.encoding)).encode("utf-8")
+        #     print("r-->"+ data.decode("gbk",'ignore'))
+        if( r != None ):
+             print("status code:"+str(r.status_code))
+             print("r-->"+ (r.content).decode("gbk",'ignore'))
+
+    def create_session_nologin_(self):
+        self.read_config_parser()
+        #for k in self.cookies.keys():
+            #self.cj.add_header([(k,self.cookies(k))])
+
+        self.opener  = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cj))
+        header = []
+        for key, value in self.headers.items():
+            elem = (key, value)
+            header.append(elem)
+        self.opener.addheaders=header
+        #for k in self.headers.keys():
+            #self.opener.addheaders = [(k, self.headers[k])]
+
+        for k in self.cookies.keys():
+            cookiename = k
+            cookievalue = self.cookies[k]
+            self.opener.addheaders.append(('Cookie', cookiename+'='+cookievalue))
+
+        urllib.request.install_opener(self.opener)
+        req=urllib.request.Request("http://www.zhihu.com")
+
+        content=self.opener.open(req)
+
+        response = ungzip(content.read()).decode("utf-8")
+        for item in self.cj:
+             print('Name = ' + item.name)
+             print('Value = ' + item.value)
+
+        print("response.info-->>" + response)
+
 
     def start(self):
-        result = self.login()
-        if( result == None):
-            print("登录失败")
-            print("登录返回报文："+ result)
-
-        cnt = 0
-        while self.queue:
-            urlid = self.queue.popleft()
-            self.visited |= {urlid}
-            print("已经抓取:" + str(cnt) + "正在抓取--->" + urlid)
-            cnt += 1
-            #reqabout = urllib.request.Request(self.getAboutUrl(urlid), headers = self.headers)
-            if self.addFollowers(urlid) < 0 :
-                continue
-            if self.addFollowees(urlid) < 0 :
-                continue
+        self.create_session_nologin()
+        # cnt = 0
+        # while self.queue:
+        #     urlid = self.queue.popleft()
+        #     self.visited |= {urlid}
+        #     print("已经抓取:" + str(cnt) + "正在抓取--->" + urlid)
+        #     cnt += 1
+        #     #reqabout = urllib.request.Request(self.getAboutUrl(urlid), headers = self.headers)
+        #     if self.addFollowers(urlid) < 0 :
+        #         continue
+        #     if self.addFollowees(urlid) < 0 :
+        #         continue
 
 
 
