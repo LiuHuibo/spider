@@ -62,6 +62,7 @@ class ZHIHUSpider:
         self.post = None
         self.cookies = None
         self.cj = http.cookiejar.CookieJar()
+        self.session = None
         #self.cookies = http.cookiejar.CookieJar()
         #self.opener  = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookies))
         #self.opener.addheaders = [('User-agent', 'Opera/9.23')]
@@ -289,6 +290,7 @@ class ZHIHUSpider:
 
         return 0
 
+
     def create_session(self):
         self.read_config()
         #self.read_chrome_cookie()
@@ -326,32 +328,8 @@ class ZHIHUSpider:
         #self.post_data = urllib.parse.urlencode(self.post).encode(encoding='utf-8')
         #response = self.opener.open(self.url_login, self.post_data)
         #response = urllib.request.urlopen(req)
-    def create_session_nologin(self):
-        self.read_config_parser()
-        #self.read_chrome_cookie()
-        pprint.pprint(dict(self.cookies))
-        print("self.email-->"+self.email)
-        print("self.passwd-->"+self.passwd)
-        session = requests.session()
-        r = session.get('http://www.zhihu.com', cookies=self.cookies,headers=self.headers,verify=False) # 实现验证码登陆
-        print("r.ending:"+r.encoding)
-        #r.encoding='utf-8'
-        #先用requests默认的编码方式解码r.content,解码后编码成"utf-8"
-        #data为bytes直接输出中文为数字字符的形势，故需要解码成gbk格式
-        #UnicodeEncodeError: 'gbk' codec can't encode character '\u2022' in position 29215: illegal multibyte sequence
-        #表明打印的时候需要自动转为gbk编码
-        #因此可以简化为下面的一步即可：
-        #注意：bytes会自动编码为unicode('utf-8')
-        #不要直接用str对bytes进行转换，中文字符会变成编码格式
-        # if( r != None ):
-        #     print("status code:"+str(r.status_code))
-        #     data = ((r.content).decode(r.encoding)).encode("utf-8")
-        #     print("r-->"+ data.decode("gbk",'ignore'))
-        if( r != None ):
-             print("status code:"+str(r.status_code))
-             print("r-->"+ (r.content).decode("gbk",'ignore'))
 
-    def create_session_nologin_(self):
+    def create_session_nologin(self):
         self.read_config_parser()
         #for k in self.cookies.keys():
             #self.cj.add_header([(k,self.cookies(k))])
@@ -383,19 +361,79 @@ class ZHIHUSpider:
         print("response.info-->>" + response)
 
 
+    def create_session_nologin_(self):
+        self.read_config_parser()
+        #self.read_chrome_cookie()
+        pprint.pprint(dict(self.cookies))
+        print("self.email-->"+self.email)
+        print("self.passwd-->"+self.passwd)
+        self.session = requests.session()
+        r = self.session.get('http://www.zhihu.com', cookies=self.cookies,headers=self.headers,verify=False) # 实现验证码登陆
+        print("r.ending:"+r.encoding)
+        #r.encoding='utf-8'
+        #先用requests默认的编码方式解码r.content,解码后编码成"utf-8"
+        #data为bytes直接输出中文为数字字符的形势，故需要解码成gbk格式
+        #UnicodeEncodeError: 'gbk' codec can't encode character '\u2022' in position 29215: illegal multibyte sequence
+        #表明打印的时候需要自动转为gbk编码
+        #因此可以简化为下面的一步即可：
+        #注意：bytes会自动编码为unicode('utf-8')
+        #不要直接用str对bytes进行转换，中文字符会变成编码格式
+        # if( r != None ):
+        #     print("status code:"+str(r.status_code))
+        #     data = ((r.content).decode(r.encoding)).encode("utf-8")
+        #     print("r-->"+ data.decode("gbk",'ignore'))
+        if( r != None ):
+             print("status code:"+str(r.status_code))
+             print("r-->"+ (r.content).decode("gbk",'ignore'))
+
+        #需要先登录：获取被关注的人
+    def addFollowers_(self,urlid):
+        r = self.session.get(self.getFollowersUrl(urlid), cookies=self.cookies,headers = self.headers,verify = False)
+        if( r != None ):
+             print("status code:"+str(r.status_code))
+             print("抓取错误")
+             #print("r-->"+ (r.content).decode("gbk",'ignore'))
+        else:
+            return -1
+         #正则表达式提取页面中所有队列, 并判断是否已经访问过, 然后加入待爬队列  
+        linkrefollowers = re.compile(r"href=\"https://www.zhihu.com/people/(.+?)\"") 
+        for x in linkrefollowers.findall((r.content).decode("gbk",'ignore')):    
+            if x not in self.visited:      
+               self.queue.append(x)      
+               print("加入队列:"+ x)
+        return 0
+
+    #需要先登录：获取关注的人
+    def addFollowees_(self,urlid):
+        r = self.session.get(self.getFolloweesUrl(urlid),cookies=self.cookies, headers = self.headers,verify = False)
+        if( r != None ):
+             print("status code:"+str(r.status_code))
+             #print("r-->"+ (r.content).decode("gbk",'ignore'))
+        else:
+            print("抓取错误")
+            return -1
+         #正则表达式提取页面中所有队列, 并判断是否已经访问过, 然后加入待爬队列  
+        linkrefollowees = re.compile(r"href=\"https://www.zhihu.com/people/(.+?)\"")  
+        for x in linkrefollowees.findall((r.content).decode("gbk",'ignore')):    
+            if  x not in self.visited:      
+                self.queue.append(x)      
+                print("加入队列:"+ x)
+
+        return 0
+
+
     def start(self):
-        self.create_session_nologin()
-        # cnt = 0
-        # while self.queue:
-        #     urlid = self.queue.popleft()
-        #     self.visited |= {urlid}
-        #     print("已经抓取:" + str(cnt) + "正在抓取--->" + urlid)
-        #     cnt += 1
-        #     #reqabout = urllib.request.Request(self.getAboutUrl(urlid), headers = self.headers)
-        #     if self.addFollowers(urlid) < 0 :
-        #         continue
-        #     if self.addFollowees(urlid) < 0 :
-        #         continue
+        self.create_session_nologin_()
+        cnt = 0
+        while self.queue:
+             urlid = self.queue.popleft()
+             self.visited |= {urlid}
+             print("已经抓取:" + str(cnt) + "正在抓取--->" + urlid)
+             cnt += 1
+             if self.addFollowers_(urlid) < 0 :
+                 continue
+             if self.addFollowees_(urlid) < 0 :
+                 continue
 
 
 
