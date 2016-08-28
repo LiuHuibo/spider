@@ -13,13 +13,10 @@ import collections
 #import localcookies
 
 
-try:
     # For Python 3.0 and later
-    import urllib.parse
-    import urllib.request
-except ImportError:
-    # Fall back to Python 2's urllib2
-    from urllib2 import urlopen
+import urllib.parse
+import urllib.request
+
 
 def ungzip(data):
     try:        # 尝试解压
@@ -176,15 +173,17 @@ class ZHIHUSpider:
         self.headers_followers['X-Xsrftoken'] = self._xsrf
 
 
-    def read_chrome_cookie(self):
-        self.cookies=localcookies.get_chrome_cookies(".zhihu.com")
+    #def read_chrome_cookie(self):
+    #   self.cookies=localcookies.get_chrome_cookies(".zhihu.com")
 
-    def get_captcha(self):
-        captchaurl = captcha_pre + str(int(time.time()*1000))+"&type=login"
-        #1467455728504&type=login"
-        print(captchaurl)
+    # <editor-fold desc="Description">
+    #def get_captcha(self):
+    #   captchaurl = captcha_pre + str(int(time.time()*1000))+"&type=login"
+    #   #1467455728504&type=login"
+    #   print(captchaurl)
 
-        return captcha
+    #    return captcha
+    # </editor-fold>
     def getLoginPara(self):
 
         try:
@@ -656,10 +655,251 @@ class ZHIHUSpider:
             return -1
 
 
+        #需要先登录：获取被关注的人
+    def getFollowersUid(self,urlid):
+        urlids = []
+        #获取重要的参数
+        r = self.session.get(self.getFollowersUrl(urlid), cookies=self.cookies,headers = self.headers,verify = False)
+        #r = self.session.get(self.getFollowersUrl(urlid),cookies=self.cookies,headers = self.headers)
+        if( r != None ):
+             print("status code:"+str(r.status_code))
+             #print("r-->"+ (r.content).decode("gbk",'ignore'))
+        else:
+            return None
+         #正则表达式提取页面中所有队列, 并判断是否已经访问过, 然后加入待爬队列  
+         #对于More后面的数据需要 调用POST方法
+        print("now here is the page of -------------> " + urlid)
+        print("---------------------------------------------->")
+        print("-----------------------------------------" +urlid)
+        print((r.content).decode("gbk",'ignore'))
+        restr = r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>'
+        print(restr)
+        linkrenumOffollowers = re.compile(r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>')
+        num_match = linkrenumOffollowers.search((r.content).decode("gbk",'ignore'))
+        if num_match:
+            num_followers = num_match.group(2)
+            print("name：" + num_match.group(1))
+            print("numoffoolwers：" + num_match.group(2)) 
+
+        else :
+            print("No match")
+            return None
+
+        
+        linkrefollowers = re.compile(r"href=\"https://www.zhihu.com/people/(.+?)\"") 
+
+        for x in linkrefollowers.findall((r.content).decode("gbk",'ignore')):    
+            urlids.append(x)     
+            print("加入队列:"+ x)
+        print("--------------------continue load follers----------------------------------------")
+        num = 0
+        if (float(num_followers)/20 -  float(num_followers)//20 != 0 ):
+            num = int(float(num_followers)//20+1)
+        else:
+            num = int(float(num_followers)//20)
+        print("num is -------- " + str(num) )
+        if num == 1:
+            return None
+
+
+        linkrehashfollowers = re.compile(r'<div class="zh-general-list clearfix" data-init="{&quot;params&quot;: {&quot;offset&quot;: 0, &quot;order_by&quot;: &quot;created&quot;, &quot;hash_id&quot;: &quot;([a-z,0-9]+)&quot;}, &quot;nodename&quot;: &quot;(.*)&quot;}">')
+        hash_match = linkrehashfollowers.search((r.content).decode("gbk",'ignore'))
+        if hash_match:
+            #{"offset":20,"order_by":"created","hash_id":"4265c545cf4082e80eea50617ff60cca"}
+            #method=next&params=%7B%22offset%22%3A20%2C%22order_by%22%3A%22created%22%2C%22hash_id%22%3A%224265c545cf4082e80eea50617ff60cca%22%7D
+            hash_id = hash_match.group(1)
+            nodename = hash_match.group(2)
+            #params_test = '{"offset":20,"order_by":"created","hash_id":"' +hash_id + '"}'
+            #params = '%7B%22offset%22%3A20%2C%22order_by%22%3A%22created%22%2C%22hash_id%22%3A%22'+ hash_id+ '%22%7D'
+            #data_params_post = {"method":"next","params":params}
+            self.headers_followers["Referer"]=self.getFollowersUrl(urlid)
+
+            for i in range(1,num):
+                print("i------------"+ str(i))
+                data_params_post= {"method":"next", "params":'{"offset":'+str(20*i)+',"order_by":"created","hash_id":"' + hash_id + '"}'}
+
+                fetch_url = 'https://www.zhihu.com/node/'+ nodename
+                print(data_params_post)
+                print(fetch_url)
+           
+                #list_r = self.session.post(fetch_url,data=data_params_post,cookies=self.cookies,headers = self.headers,verify = False)
+                print(r.cookies)
+                #pprint(r.headers)
+                #list_r1 = self.session.post('https://zhihu-web-analytics.zhihu.com/logs/batch',cookies=self.cookies,headers = self.headers,verify = False)
+
+                list_r = self.session.post(fetch_url,data=data_params_post,cookies=self.cookies,headers = self.headers_followers,verify = False)
+                linkrefollowers_continue = re.compile(r'href="https://www.zhihu.com/people/(.*?)"') 
+                print("----------------------now here is the user list -------------------------")
+                if ( list_r != None):
+                    print("status code:"+str(list_r.status_code))
+                    #print("list_r.text:"+list_r.text)
+                    #print((list_r.content).decode("gbk",'ignore'))
+
+                    #print(list_r.json())
+
+                    if (list_r.status_code!=200):
+                        print("网页异常,statuscode:"+str(list_r.status_code))
+                        return None
+                    continue_json = list_r.json()
+                    print("len of json is "+ str(len(continue_json["msg"])))
+                    for n in range(0,len(continue_json["msg"])):
+                        print("n is ------- " + str(n))
+                        uid_match = linkrefollowers_continue.search((continue_json["msg"][n]))
+                        if uid_match:
+                            x = uid_match.group(1)
+                            urlids.append(x)
+                            print( "加入队列:"+ x)
+
+                        else:
+                            print("match error:"+str(n))
+
+
+                else:
+                    print("Response error")
+            
+                    return None
+            return urlids
+
+        else:
+            print("No match")
+            return None
+
+    #需要先登录：获取关注的人
+    def getFolloweesUid(self,urlid):
+
+        urlids = []
+        #获取重要的参数
+        r = self.session.get(self.getFolloweesUrl(urlid), cookies=self.cookies,headers = self.headers,verify = False)
+        #r = self.session.get(self.getFollowersUrl(urlid),cookies=self.cookies,headers = self.headers)
+        if( r != None ):
+             print("status code:"+str(r.status_code))
+             print("r-->"+ (r.content).decode("gbk",'ignore'))
+        else:
+            return None
+         #正则表达式提取页面中所有队列, 并判断是否已经访问过, 然后加入待爬队列  
+         #对于More后面的数据需要 调用POST方法
+        print("now here is the page of -------------> " + urlid)
+        print("---------------------------------------------->")
+        print("-----------------------------------------" +urlid)
+        print((r.content).decode("gbk",'ignore'))
+        restr = r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>'
+        print(restr)
+        linkrenumOffollowees = re.compile(r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>')
+        num_match = linkrenumOffollowees.search((r.content).decode("gbk",'ignore'))
+        if num_match:
+            num_followees = num_match.group(2)
+            print("name：" + num_match.group(1))
+            print("numoffoolwers：" + num_match.group(2)) 
+
+        else :
+            print("No match")
+            return None
+
+        
+        linkrefollowees = re.compile(r"href=\"https://www.zhihu.com/people/(.+?)\"") 
+
+        for x in linkrefollowees.findall((r.content).decode("gbk",'ignore')):    
+            urlids.append(x)
+            print("加入队列:"+ x)
+        print("--------------------continue load follers----------------------------------------")
+        num = 0
+        if (float(num_followees)/20 -  float(num_followees)//20 != 0 ):
+            num = int(float(num_followees)//20+1)
+        else:
+            num = int(float(num_followees)//20)
+        print("num is -------- " + str(num) )
+        if num == 1:
+            return urlids
+
+
+        linkrehashfollowees = re.compile(r'<div class="zh-general-list clearfix" data-init="{&quot;params&quot;: {&quot;offset&quot;: 0, &quot;order_by&quot;: &quot;created&quot;, &quot;hash_id&quot;: &quot;([a-z,0-9]+)&quot;}, &quot;nodename&quot;: &quot;(.*)&quot;}">')
+        hash_match = linkrehashfollowees.search((r.content).decode("gbk",'ignore'))
+        if hash_match:
+            #{"offset":20,"order_by":"created","hash_id":"4265c545cf4082e80eea50617ff60cca"}
+            #method=next&params=%7B%22offset%22%3A20%2C%22order_by%22%3A%22created%22%2C%22hash_id%22%3A%224265c545cf4082e80eea50617ff60cca%22%7D
+            hash_id = hash_match.group(1)
+            nodename = hash_match.group(2)
+            #params_test = '{"offset":20,"order_by":"created","hash_id":"' +hash_id + '"}'
+            #params = '%7B%22offset%22%3A20%2C%22order_by%22%3A%22created%22%2C%22hash_id%22%3A%22'+ hash_id+ '%22%7D'
+            #data_params_post = {"method":"next","params":params}
+            self.headers_followees["Referer"]=self.getFolloweesUrl(urlid)
+
+            for i in range(1,num):
+                print("i------------"+ str(i))
+                data_params_post= {"method":"next", "params":'{"offset":'+str(20*i)+',"order_by":"created","hash_id":"' + hash_id + '"}'}
+
+                fetch_url = 'https://www.zhihu.com/node/'+ nodename
+                print(data_params_post)
+                print(fetch_url)
+           
+                #list_r = self.session.post(fetch_url,data=data_params_post,cookies=self.cookies,headers = self.headers,verify = False)
+                print(r.cookies)
+                #pprint(r.headers)
+                #list_r1 = self.session.post('https://zhihu-web-analytics.zhihu.com/logs/batch',cookies=self.cookies,headers = self.headers,verify = False)
+
+
+                list_r = self.session.post(fetch_url,data=data_params_post,cookies=self.cookies,headers = self.headers_followees,verify = False)
+                linkrefollowees_continue = re.compile(r'href="https://www.zhihu.com/people/(.*?)"') 
+                print("----------------------now here is the user list -------------------------")
+                if ( list_r != None):
+                    print("status code:"+str(list_r.status_code))
+                    #print("list_r.text:"+list_r.text)
+                    
+
+                    #print(list_r.json())
+                    if (list_r.status_code != 200):
+                        print("网页异常,statuscode:"+str(list_r.status_code))
+                        return None
+                    continue_json = list_r.json()
+                    l = len(continue_json["msg"])
+                    print("len of json is "+ str(l))
+                    for n in range(0,len(continue_json["msg"])):
+                        print("n is ------- " + str(n))
+                        uid_match = linkrefollowees_continue.search((continue_json["msg"][n]))
+                        if uid_match:
+                            x = uid_match.group(1)
+                            urlids.append(x)
+                            print( "加入队列:"+ x)
+
+                        else:
+                            print("match error:"+str(n))
+
+
+                else:
+                    print("Response error")
+                    return None
+            return urlids
+
+        else:
+            print("No match")
+            return None
 
 
 
+    def geturlids(self,urlid):
+        urlid_followers =  self.getFollowersUid(urlid)
+        urlid_followees =  self.getFolloweesUid(urlid)
+        urlids = []
+        if (urlid_followers != None):
+            for x in urlid_followers:
+                urlids.append(x)
+        if (urlid_followees != None):
+            for x in urlid_followees:
+                urlids.append(x)
+        return urlids
 
+    def gethtml(self,url):
+        r = self.session.get(url, cookies=self.cookies,headers = self.headers,verify = False)
+        if( r != None ):
+             print("status code:"+str(r.status_code))
+             print("r-->"+ (r.content).decode("gbk",'ignore'))
+        else:
+            return None
+        return  (r.content).decode("gbk",'ignore')
+
+
+    def get_home_url(self,urlid):
+        return ("https://www.zhihu.com/people/"+urlid+"/about")
 
     def start(self):
         self.create_session_nologin_()
@@ -673,6 +913,9 @@ class ZHIHUSpider:
                  continue
              if self.addFollowees_(urlid) < 0 :
                  continue
+
+
+
 
 
 
