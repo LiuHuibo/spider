@@ -1,5 +1,5 @@
 #!usr/bin/python
-#coding=utf8
+#coding=gbk
 import ZHIHUSpider as zhihu
 spider = zhihu.ZHIHUSpider()
 spider.start()

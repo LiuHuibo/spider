@@ -1,10 +1,10 @@
 #!usr/bin/python
-#coding=UTF-8
-# URLè¿‡æ»¤å™¨ï¼Œè®¾ç½®è¿‡æ»¤è§„åˆ™ï¼Œç”¨æ¥æŠ“å–å¾…çˆ¬çš„URL
-# URLç»„åˆå™¨ï¼Œè®¾ç½®ç»„åˆè§„åˆ™ï¼Œç”¨æ¥ç»„åˆå¾…çˆ¬çš„URL
-# çŸ¥ä¹ç½‘ç«™ï¼š è¿‡æ»¤ç½‘é¡µä¸­çš„URLè¿æ¥ï¼Œä»…ä»…ä¿ç•™éœ€è¦çš„é“¾æ¥æˆ–è€…å­—æ®µ---a. ç›²çˆ¬ï¼ˆæ•ˆç‡è¾ƒä½ï¼Œä½†æ˜¯é€šç”¨æ€§å¼ºï¼‰ã€‚b.è®¾ç½®çˆ¬å–ç­–ç•¥è§„åˆ™ï¼Œæ¯”å¦‚æŸä¸ªæ¨¡å¼çš„ç½‘å€ã€‚
-#             ç»„åˆè¿æ¥æˆ–å­—æ®µï¼Œè·å–htmlå†…å®¹å­˜å‚¨åˆ°æ•°æ®åº“
-#             åˆ©ç”¨xpathæˆ–è€…æ­£åˆ™è¡¨è¾¾å¼åˆ†æå­˜å‚¨åˆ°æœ¬åœ°æ•°æ®åº“çš„å†…å®¹
+#coding=gbk
+# URL¹ıÂËÆ÷£¬ÉèÖÃ¹ıÂË¹æÔò£¬ÓÃÀ´×¥È¡´ıÅÀµÄURL
+# URL×éºÏÆ÷£¬ÉèÖÃ×éºÏ¹æÔò£¬ÓÃÀ´×éºÏ´ıÅÀµÄURL
+# ÖªºõÍøÕ¾£º ¹ıÂËÍøÒ³ÖĞµÄURLÁ¬½Ó£¬½ö½ö±£ÁôĞèÒªµÄÁ´½Ó»òÕß×Ö¶Î---a. Ã¤ÅÀ£¨Ğ§ÂÊ½ÏµÍ£¬µ«ÊÇÍ¨ÓÃĞÔÇ¿£©¡£b.ÉèÖÃÅÀÈ¡²ßÂÔ¹æÔò£¬±ÈÈçÄ³¸öÄ£Ê½µÄÍøÖ·¡£
+#             ×éºÏÁ¬½Ó»ò×Ö¶Î£¬»ñÈ¡htmlÄÚÈİ´æ´¢µ½Êı¾İ¿â
+#             ÀûÓÃxpath»òÕßÕıÔò±í´ïÊ½·ÖÎö´æ´¢µ½±¾µØÊı¾İ¿âµÄÄÚÈİ
 # 
 from socket import * 
 import struct
@@ -12,7 +12,7 @@ import ZHIHUSpider as zhihu
 import json
 
 spider = zhihu.ZHIHUSpider()
-#ä»masterè·å–url =>request
+#´Ómaster»ñÈ¡url =>request
 def request_from_master(): 
     request_json = json.dumps({"ACTION":"GET","NUM":1})
     print("request from master:"+ request_json)
@@ -31,16 +31,16 @@ def request_from_master():
         urls = recv_json["URLS"]
     print(str(recv_json))
     return urls
-#è§£æå½“å‰URLï¼Œè·å–å…¶ä¸­URL
+#½âÎöµ±Ç°URL£¬»ñÈ¡ÆäÖĞURL
 def extract_urls(current_url):
     next_url = spider.geturlids(current_url)
     print("current_url's flowers and flowees is -----> " + str(next_url))
     return next_url
-#å­˜å‚¨å½“å‰URLçš„WEBå†…å®¹åˆ°mongodb
+#´æ´¢µ±Ç°URLµÄWEBÄÚÈİµ½mongodb
 def store(current_url):
     print("store:"+str(current_url))
     return 0
-#å°†urlæ•°ç»„å‘é€åˆ°masteræœåŠ¡å™¨ï¼ŒPOST
+#½«urlÊı×é·¢ËÍµ½master·şÎñÆ÷£¬POST
 def send_to_master(to_send):
     post_json = json.dumps({"ACTION":"POST","URLS": to_send })
     print("send to master:"+post_json)
@@ -60,7 +60,7 @@ while(True):
     urls = request_from_master()
     if (not urls):
         break   
-    #çˆ¬å–æ¨¡å—
+    #ÅÀÈ¡Ä£¿é
     current_url = urls
     current_home_url = spider.get_home_url(current_url)
     current_hmtl = spider.gethtml(current_home_url)

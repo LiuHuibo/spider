@@ -1,5 +1,5 @@
 #!usr/bin/python
-#coding=UTF-8
+#coding=gbk
 import socket
 import sys
 import time
@@ -59,7 +59,7 @@ def get_from_slave(tcpClientSock,buffersize):
     json_data = json.loads(str(data, encoding='utf-8'))
     #tcpClientSock.send(bytes('[%s]%s'%(time.ctime(), str(data, encoding='utf-8')), 'utf-8'))
     #tcpClientSock.send(bytes('[%s]%s'%(time.ctime(), str(data, encoding='utf-8')), 'utf-8'))
-    #dataËß£ÊûêÔºåÊ†ºÂºè GET|POST:{CONTENT}
+    #dataΩ‚Œˆ£¨∏Ò Ω GET|POST:{CONTENT}
     return json_data
 
 def send(tcpClientSock,item):
