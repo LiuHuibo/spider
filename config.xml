@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone="yes"?>
-<group id="zhihu" name="知乎爬虫" class="CommonSpider">
-      <item name="param" method="post" need="false">
+<spider id="zhihu" name="知乎爬虫" class="CommonSpider">
+      <item name="login" method="post" need="false">
            <filed name="email">fly8421@outlook.com</filed>
            <filed name="passwd">33614793fly</filed>
       </item>
@@ -30,5 +30,4 @@
         <filed name="urlhttps" action="or">'https://wwww.zhihu.com/.*'</filed>
     </item>
     <item name="logic" need="true"></item>
-
-</group>
+</spider>

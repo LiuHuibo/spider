@@ -16,7 +16,9 @@ class ConfigBean:
     def read_config(self, config_xml):
         tree = ET.parse(config_xml)
         root = tree.getroot()
-        #for group in root.iter('group'):
+        for spider in root.iter('spider'):
+
+
         #for item in root.findall("./item"):
 
 
