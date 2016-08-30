@@ -1,6 +1,7 @@
 #!/bin/python
 #coding=gbk
 import configparser
+import xml.etree.ElementTree as ET
 
 
 class ConfigBean:
@@ -12,12 +13,15 @@ class ConfigBean:
          self.mHasCookies = False
          self.mHasHeaders = False
 
-    def read_config(self, configfile):
-        cf = configparser.ConfigParser()
-        cf.read('config.ini')
-        cookie_config = cf.items('cookies')
-        self.cookies = dict(cookie_config)
-        return None
+    def read_config(self, config_xml):
+        tree = ET.parse(config_xml)
+        root = tree.getroot()
+        #for group in root.iter('group'):
+        #for item in root.findall("./item"):
+
+
+
+
 
     def get_postdata(self):
         return self.mPostdata
