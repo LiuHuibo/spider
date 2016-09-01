@@ -8,24 +8,28 @@ import pprint
 
 
 class CommonSpider(Spider):
-    def __init__(self, configbean):
+    def __init__(self):
         Spider.__init__(self)
         self.mName = "CommonSpider"
-        self.mConfigBean = configbean
+        self.mConfigBean = None
         self.mHeaders = None
         self.mCookies = None
+        self.mFilter = None
         self.mPostdata = None
         self.mSession = None
         self.mUrllogin = None
         self.mHomePage = None
 
     def set_cookies(self, cookies):
-        self.mCookies = cookies
+        self.mCookies = self.mConfigBean.mCookies
         return None
 
     def set_header(self, headers):
         self.mHeaders = headers
         return None
+
+    def set_filter(self,filter):
+        self.mFilter = filter
 
     def login_no_cookies(self):
         Spider.login()

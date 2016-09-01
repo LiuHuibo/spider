@@ -3,19 +3,50 @@
 import configparser
 import xml.etree.ElementTree as ET
 
-
+def booltostr(bnum):
+    if(bnum == True):
+        return "True"
+    else:
+        return "False"
 class Login:
 
     def __init__(self):
-        self.mName = None
-        self.mMethod = None
+        self.mName = 'login'
+        self.mMethod = 'get'
         self.mNeed = False
         self.mFields = dict()
+    def tostring(self):
+        return("mName="+self.mName+";mMethod="+self.mMethod+";mNeed="+booltostr(self.mNeed) +":mFields="+str(self.mFields) )
+class Cookies:
+    def __init__(self):
+        self.mName='cookies'
+        self.mNeed = False
+        self.mFields = dict()
+    def tostring(self):
+        return("mName="+self.mName+";mNeed="+booltostr(self.mNeed)+":mFields="+str(self.mFields))
+class Headers:
+    def __init__(self):
+        self.mName = 'headers'
+        self.mNeed = False
+        self.mFields = dict()
+    def tostring(self):
+        return("mName="+self.mName+";mNeed="+booltostr(self.mNeed)+":mFields="+str(self.mFields))
 
-    def to_string(self):
-        print(self.mName, self.mMethod, self.mNeed)
-        print(self.mFields)
+class Filter:
+    def __init__(self):
+        self.mName = 'filter'
+        self.mNeed = False
+        self.mFields = dict()
+    def tostring(self):
+        return("mName="+self.mName+";mNeed="+booltostr(self.mNeed)+":mFields="+str(self.mFields))
 
+class Logic:
+    def __init__(self):
+        self.mName = 'filter'
+        self.mNeed = False
+        self.mFields = dict()
+    def tostring(self):
+        return("mName="+self.mName+";mNeed="+booltostr(self.mNeed)+":mFields="+str(self.mFields))
 
 class ConfigBean:
     def __init__(self):
@@ -28,10 +59,10 @@ class ConfigBean:
         self.mSpiderClass = None
         self.mSpiderID = None
         self.mLogin = Login()
-        self.mCookies = None
-        self.mHeaders = None
-        self.mFilter = None
-        self.mLogic = None
+        self.mCookies = Cookies()
+        self.mHeaders = Headers()
+        self.mFilter = Filter()
+        self.mLogic = Logic()
 
 
 
@@ -58,7 +89,66 @@ class ConfigBean:
                         self.mLogin.mNeed = True
                     for field in item.iter('field'):
                         self.mLogin.mFields[field.attrib['name']] = field.text
-                    self.mLogin.to_string()
+                    print(self.mLogin.tostring())
+                elif(item.attrib['name'] == 'cookies'):
+                     if('need' in item.attrib.keys()):
+                        need = item.attrib['need']
+                        if ( need == 'false'):
+                            self.mCookies.mNeed = False
+                        else:
+                            self.mCookies.mNeed = True
+                     else:
+                        self.mCookies.mNeed = True
+                     for field in item.iter('field'):
+                         self.mCookies.mFields[field.attrib['name']] = field.text
+                     print(self.mCookies.tostring())
+
+                elif(item.attrib['name'] == 'headers'):
+                    if('need' in item.attrib.keys()):
+                        need = item.attrib['need']
+                        if ( need == 'false'):
+                            self.mHeaders.mNeed = False
+                        else:
+                            self.mHeaders.mNeed = True
+                    else:
+                        self.mHeaders.mNeed = True
+                    for field in item.iter('field'):
+                         self.mHeaders.mFields[field.attrib['name']] = field.text
+                    print(self.mHeaders.tostring())
+
+                elif(item.attrib['name'] == 'filter' ):
+                    if ('need' in item.attrib.keys()):
+                        need = item.attrib['need']
+                        if ( need == 'false' ):
+                            self.mFilter.mNeed = False
+                        else:
+                            self.mFilter.mNeed = True
+                    else:
+                        self.mFilter.mNeed = True
+                    for field in item.iter('field'):
+                        self.mFilter.mFields[field.attrib['name']] = field.text
+                    print(self.mFilter.tostring())
+
+                elif(item.attrib['name'] == 'logic'):
+                    if('need' in item.attrib.keys()):
+                        need = item.attrib['need']
+                        if (need == 'false'):
+                            self.mLogic.mNeed = False
+                        else:
+                            self.mLogic.mNeed = True
+                    else:
+                        self.mLogic.mNeed = True
+                    for field in item.iter('field'):
+                        self.mLogic.mFields[field.attrib['name']] = field.text
+                    print(self.mLogic.tostring())
+
+                else:
+                    print("error format",item.tag,item.attrib)
+
+
+
+
+
             return None
         #for item in root.findall("./item"):
 
