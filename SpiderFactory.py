@@ -12,7 +12,8 @@ class SpiderFactory:
         spider = None
         if(self.config_bean.mSpiderClass == 'CommonSpider'):
             spider = CommonSpider.CommonSpider
-            spider.__init__(self.config_bean)
+            spider.__init__()
+            
         else:
             spider = None
         return  spider

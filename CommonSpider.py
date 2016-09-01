@@ -15,11 +15,25 @@ class CommonSpider(Spider):
         self.mHeaders = None
         self.mCookies = None
         self.mFilter = None
-        self.mPostdata = None
+        self.mReqData = None
         self.mSession = None
         self.mUrllogin = None
         self.mHomePage = None
+        self.action = dict()
 
+    def config_from_bean(self,configbean):
+        self.mConfigBean = configbean
+        self.set_cookies(self, configbean.mCookies.mFields)
+        self.set_header(self, configbean.mHeaders.mFields)
+        self.set_filter(self, configbean.mFilter.mFields)
+        self.set_homePage(self, configbean.mLogin.mUrl)
+        self.set_postdata(self, configbean.mLogin.mFields)
+
+    def set_postdata(self, postdata):
+        self.mPostdata = urllib.parse.urlencode(postdata).encode(encoding='utf-8')
+
+    def set_homepage(self,url):
+         self.mHomePage = url
     def set_cookies(self, cookies):
         self.mCookies = self.mConfigBean.mCookies
         return None
@@ -28,12 +42,11 @@ class CommonSpider(Spider):
         self.mHeaders = headers
         return None
 
-    def set_filter(self,filter):
+    def set_filter(self, filter):
         self.mFilter = filter
 
     def login_no_cookies(self):
         Spider.login()
-        self.mPostdata = urllib.parse.urlencode(self.mConfigBean.get_postdata()).encode(encoding='utf-8')
         r = self.session.post(self.mUrllogin, data=self.mPostdata, headers=self.mHeaders)
         if r.json()['r'] == 1:
             print('Login Failed, reason is:')

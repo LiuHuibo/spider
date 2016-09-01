@@ -13,10 +13,11 @@ class Login:
     def __init__(self):
         self.mName = 'login'
         self.mMethod = 'get'
+        self.mUrl = None
         self.mNeed = False
         self.mFields = dict()
     def tostring(self):
-        return("mName="+self.mName+";mMethod="+self.mMethod+";mNeed="+booltostr(self.mNeed) +":mFields="+str(self.mFields) )
+        return("mName="+self.mName+";mMethod="+self.mMethod+";mUrl=" +self.mUrl+ ";mNeed="+booltostr(self.mNeed) +":mFields="+str(self.mFields) )
 class Cookies:
     def __init__(self):
         self.mName='cookies'
@@ -49,7 +50,7 @@ class Logic:
         return("mName="+self.mName+";mNeed="+booltostr(self.mNeed)+":mFields="+str(self.mFields))
 
 class ConfigBean:
-    def __init__(self):
+    def __init__(self,config_xml):
         self.mPostdata = None
         self.mHeader = None
         self.mNeedlogin = False
@@ -63,6 +64,7 @@ class ConfigBean:
         self.mHeaders = Headers()
         self.mFilter = Filter()
         self.mLogic = Logic()
+        self.read_config(config_xml)
 
 
 
@@ -79,6 +81,7 @@ class ConfigBean:
                 if(item.attrib['name'] == 'login'):
                     self.mLogin.mName = 'login'
                     self.mLogin.mMethod = item.attrib['method']
+                    self.mLogin.mUrl = item.attrib['url']
                     if('need' in item.attrib.keys()):
                         need = item.attrib['need']
                         if ( need == 'false'):

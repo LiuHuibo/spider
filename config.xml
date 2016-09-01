@@ -1,9 +1,8 @@
 <?xml version="1.0" standalone="yes"?>
 <spider id="zhihu" name="知乎爬虫" class="CommonSpider">
-      <item name="login" method="post" need="false">
+      <item name="login" method="post" need="false" url="http://www.zhihu.com">
            <field name="email">fly8421@outlook.com</field>
            <field name="passwd">33614793fly</field>
-           <filed name="url">http://www.zhihu.com</filed>
       </item>
       <item name="cookies" need="true">
            <field name="d_c0">"AIDAs733tgmPTkfBCjcM5JXKTFuoPtUSdww=|1459677579"</field>

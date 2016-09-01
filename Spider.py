@@ -3,6 +3,10 @@
 class Spider:
     def __init__(self):
         self.mName = "Spider"
+
+    def config_from_bean(self,configbean):
+        return  None
+
     def login(self):
         return None
     def read_config(self):
