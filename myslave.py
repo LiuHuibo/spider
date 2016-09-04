@@ -13,14 +13,19 @@ import DBAdapter
 import MongoDB
 import Comm
 if __name__ == "__main__":
+
     dbadapter = DBAdapter.DBAdapter(MongoDB.MongoDB)
+
     spiderFactory = SpiderFactory.SpiderFactory("config.xml")
     spider = spiderFactory.get_spider()
     spider.create_session()
     spider.login_use_cookies()
+
     parser = Parser.Parser()
+
     comm = Comm.Comm('localhost',5008,40960)
     comm.conn_to_master()
+
     while (True):
         current_url = comm.request_from_master(1)
         if (not current_url):
@@ -28,7 +33,7 @@ if __name__ == "__main__":
         # ÅÀÈ¡Ä£¿é
         current_html = spider.crawl(current_url)
         to_send = []
-        next_urls = parser.extract_urls(current_html, None)
+        next_urls = parser.extract_urls(current_html)
         if (next_urls):
             for next_url in parser.extract_urls(current_html, None):
                 to_send.append(next_url)
