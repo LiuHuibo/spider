@@ -7,4 +7,6 @@ class SimpleDB:
         return True
     def read_record(self):
         return True
+    def store(self,html):
+        return  0
 

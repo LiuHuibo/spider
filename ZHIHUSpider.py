@@ -55,7 +55,7 @@ class ZHIHUSpider:
             'Accept-Language':'zh-CN,zh;q=0.8',
             'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
             'Host':'www.zhihu.com',
-            'Upgrade-Insecure-Requests':1
+            'Upgrade-Insecure-Requests':'1'
             }
         self.headers_followers = {
 
@@ -406,6 +406,7 @@ class ZHIHUSpider:
         self.read_config_parser()
         #self.read_chrome_cookie()
         pprint.pprint(dict(self.cookies))
+        pprint.pprint(dict(self.headers))
         print("self.email-->"+self.email)
         print("self.passwd-->"+self.passwd)
         self.session = requests.Session()
@@ -460,7 +461,7 @@ class ZHIHUSpider:
         
         linkrefollowers = re.compile(r"href=\"https://www.zhihu.com/people/(.+?)\"") 
 
-        for x in linkrefollowers.findall((r.content).decode("gbk",'ignore')):    
+        for x in linkrefollowers.findall((r.content).decode(r.encoding,'ignore')):
             if x not in self.visited:      
                self.queue.append(x)      
                print("加入队列:"+ x)
@@ -476,7 +477,7 @@ class ZHIHUSpider:
 
 
         linkrehashfollowers = re.compile(r'<div class="zh-general-list clearfix" data-init="{&quot;params&quot;: {&quot;offset&quot;: 0, &quot;order_by&quot;: &quot;created&quot;, &quot;hash_id&quot;: &quot;([a-z,0-9]+)&quot;}, &quot;nodename&quot;: &quot;(.*)&quot;}">')
-        hash_match = linkrehashfollowers.search((r.content).decode("gbk",'ignore'))
+        hash_match = linkrehashfollowers.search((r.content).decode(r.encoding,'ignore'))
         if hash_match:
             #{"offset":20,"order_by":"created","hash_id":"4265c545cf4082e80eea50617ff60cca"}
             #method=next&params=%7B%22offset%22%3A20%2C%22order_by%22%3A%22created%22%2C%22hash_id%22%3A%224265c545cf4082e80eea50617ff60cca%22%7D
@@ -561,7 +562,7 @@ class ZHIHUSpider:
         restr = r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>'
         print(restr)
         linkrenumOffollowees = re.compile(r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>')
-        num_match = linkrenumOffollowees.search((r.content).decode("gbk",'ignore'))
+        num_match = linkrenumOffollowees.search((r.content).decode(r.encoding,'ignore'))
         if num_match:
             num_followees = num_match.group(2)
             print("name：" + num_match.group(1))
@@ -574,7 +575,7 @@ class ZHIHUSpider:
         
         linkrefollowees = re.compile(r"href=\"https://www.zhihu.com/people/(.+?)\"") 
 
-        for x in linkrefollowees.findall((r.content).decode("gbk",'ignore')):    
+        for x in linkrefollowees.findall((r.content).decode(r.encoding,'ignore')):
             if x not in self.visited:      
                self.queue.append(x)      
                print("加入队列:"+ x)
@@ -590,7 +591,7 @@ class ZHIHUSpider:
 
 
         linkrehashfollowees = re.compile(r'<div class="zh-general-list clearfix" data-init="{&quot;params&quot;: {&quot;offset&quot;: 0, &quot;order_by&quot;: &quot;created&quot;, &quot;hash_id&quot;: &quot;([a-z,0-9]+)&quot;}, &quot;nodename&quot;: &quot;(.*)&quot;}">')
-        hash_match = linkrehashfollowees.search((r.content).decode("gbk",'ignore'))
+        hash_match = linkrehashfollowees.search((r.content).decode(r.encoding,'ignore'))
         if hash_match:
             #{"offset":20,"order_by":"created","hash_id":"4265c545cf4082e80eea50617ff60cca"}
             #method=next&params=%7B%22offset%22%3A20%2C%22order_by%22%3A%22created%22%2C%22hash_id%22%3A%224265c545cf4082e80eea50617ff60cca%22%7D
@@ -663,7 +664,7 @@ class ZHIHUSpider:
         #r = self.session.get(self.getFollowersUrl(urlid),cookies=self.cookies,headers = self.headers)
         if( r != None ):
              print("status code:"+str(r.status_code))
-             #print("r-->"+ (r.content).decode("gbk",'ignore'))
+             #print("r-->"+ (r.content).decode(r.encoding,'ignore'))
         else:
             return None
          #正则表达式提取页面中所有队列, 并判断是否已经访问过, 然后加入待爬队列  
@@ -671,11 +672,11 @@ class ZHIHUSpider:
         print("now here is the page of -------------> " + urlid)
         print("---------------------------------------------->")
         print("-----------------------------------------" +urlid)
-        print((r.content).decode("gbk",'ignore'))
+        print((r.content).decode(r.encoding,'ignore'))
         restr = r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>'
         print(restr)
         linkrenumOffollowers = re.compile(r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>')
-        num_match = linkrenumOffollowers.search((r.content).decode("gbk",'ignore'))
+        num_match = linkrenumOffollowers.search((r.content).decode(r.encoding,'ignore'))
         if num_match:
             num_followers = num_match.group(2)
             print("name：" + num_match.group(1))
@@ -688,7 +689,7 @@ class ZHIHUSpider:
         
         linkrefollowers = re.compile(r"href=\"https://www.zhihu.com/people/(.+?)\"") 
 
-        for x in linkrefollowers.findall((r.content).decode("gbk",'ignore')):    
+        for x in linkrefollowers.findall((r.content).decode(r.encoding,'ignore')):
             urlids.append(x)     
             print("加入队列:"+ x)
         print("--------------------continue load follers----------------------------------------")
@@ -703,7 +704,7 @@ class ZHIHUSpider:
 
 
         linkrehashfollowers = re.compile(r'<div class="zh-general-list clearfix" data-init="{&quot;params&quot;: {&quot;offset&quot;: 0, &quot;order_by&quot;: &quot;created&quot;, &quot;hash_id&quot;: &quot;([a-z,0-9]+)&quot;}, &quot;nodename&quot;: &quot;(.*)&quot;}">')
-        hash_match = linkrehashfollowers.search((r.content).decode("gbk",'ignore'))
+        hash_match = linkrehashfollowers.search((r.content).decode(r.encoding,'ignore'))
         if hash_match:
             #{"offset":20,"order_by":"created","hash_id":"4265c545cf4082e80eea50617ff60cca"}
             #method=next&params=%7B%22offset%22%3A20%2C%22order_by%22%3A%22created%22%2C%22hash_id%22%3A%224265c545cf4082e80eea50617ff60cca%22%7D
@@ -733,7 +734,7 @@ class ZHIHUSpider:
                 if ( list_r != None):
                     print("status code:"+str(list_r.status_code))
                     #print("list_r.text:"+list_r.text)
-                    #print((list_r.content).decode("gbk",'ignore'))
+                    #print((list_r.content).decode(r.encoding,'ignore'))
 
                     #print(list_r.json())
 
@@ -773,7 +774,7 @@ class ZHIHUSpider:
         #r = self.session.get(self.getFollowersUrl(urlid),cookies=self.cookies,headers = self.headers)
         if( r != None ):
              print("status code:"+str(r.status_code))
-             print("r-->"+ (r.content).decode("gbk",'ignore'))
+             print("r-->"+ (r.content).decode(r.encoding,'ignore'))
         else:
             return None
          #正则表达式提取页面中所有队列, 并判断是否已经访问过, 然后加入待爬队列  
@@ -781,11 +782,11 @@ class ZHIHUSpider:
         print("now here is the page of -------------> " + urlid)
         print("---------------------------------------------->")
         print("-----------------------------------------" +urlid)
-        print((r.content).decode("gbk",'ignore'))
+        print((r.content).decode(r.encoding,'ignore'))
         restr = r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>'
         print(restr)
         linkrenumOffollowees = re.compile(r'<span class="zm-profile-section-name"><a href="/people/'+urlid+'">(.*)</a>.*\s+(\d+).*</span>')
-        num_match = linkrenumOffollowees.search((r.content).decode("gbk",'ignore'))
+        num_match = linkrenumOffollowees.search((r.content).decode(r.encoding,'ignore'))
         if num_match:
             num_followees = num_match.group(2)
             print("name：" + num_match.group(1))
@@ -798,7 +799,7 @@ class ZHIHUSpider:
         
         linkrefollowees = re.compile(r"href=\"https://www.zhihu.com/people/(.+?)\"") 
 
-        for x in linkrefollowees.findall((r.content).decode("gbk",'ignore')):    
+        for x in linkrefollowees.findall((r.content).decode(r.encoding,'ignore')):
             urlids.append(x)
             print("加入队列:"+ x)
         print("--------------------continue load follers----------------------------------------")
@@ -813,7 +814,7 @@ class ZHIHUSpider:
 
 
         linkrehashfollowees = re.compile(r'<div class="zh-general-list clearfix" data-init="{&quot;params&quot;: {&quot;offset&quot;: 0, &quot;order_by&quot;: &quot;created&quot;, &quot;hash_id&quot;: &quot;([a-z,0-9]+)&quot;}, &quot;nodename&quot;: &quot;(.*)&quot;}">')
-        hash_match = linkrehashfollowees.search((r.content).decode("gbk",'ignore'))
+        hash_match = linkrehashfollowees.search((r.content).decode(r.encoding,'ignore'))
         if hash_match:
             #{"offset":20,"order_by":"created","hash_id":"4265c545cf4082e80eea50617ff60cca"}
             #method=next&params=%7B%22offset%22%3A20%2C%22order_by%22%3A%22created%22%2C%22hash_id%22%3A%224265c545cf4082e80eea50617ff60cca%22%7D
@@ -892,10 +893,10 @@ class ZHIHUSpider:
         r = self.session.get(url, cookies=self.cookies,headers = self.headers,verify = False)
         if( r != None ):
              print("status code:"+str(r.status_code))
-             print("r-->"+ (r.content).decode("gbk",'ignore'))
+             print("r-->"+ (r.content).decode(r.encoding,'ignore'))
         else:
             return None
-        return  (r.content).decode("gbk",'ignore')
+        return  (r.content).decode(r.encoding,'ignore')
 
 
     def get_home_url(self,urlid):
@@ -914,6 +915,10 @@ class ZHIHUSpider:
              if self.addFollowees_(urlid) < 0 :
                  continue
 
+
+if __name__ == "__main__":
+    spider = ZHIHUSpider()
+    spider.start()
 
 
 

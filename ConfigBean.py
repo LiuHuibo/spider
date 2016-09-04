@@ -116,7 +116,10 @@ class ConfigBean:
                     else:
                         self.mHeaders.mNeed = True
                     for field in item.iter('field'):
-                         self.mHeaders.mFields[field.attrib['name']] = field.text
+                         if( 'type' in field.attrib.keys() and field.attrib['type'] == 'int'):
+                             self.mHeaders.mFields[field.attrib['name']] = int(field.text)
+                         else:
+                             self.mHeaders.mFields[field.attrib['name']] = field.text
                     print(self.mHeaders.tostring())
 
                 elif(item.attrib['name'] == 'filter' ):
@@ -176,9 +179,7 @@ class ConfigBean:
 
 
 if __name__ == "__main__":
-    config_bean = ConfigBean()
-    config_bean.read_config("config.xml")
-
+    config_bean = ConfigBean("config.xml")
 
 
 

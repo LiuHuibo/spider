@@ -17,17 +17,22 @@
            <field name="_xsrf">ffaa3b0acb58fcf4d9ef2b505ba4fea5</field>
       </item>
     <item name="headers" need="true">
-           <field name='Connection'>'keep-alive'</field>
-           <field name='Accept'>'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'</field>
-           <field name='Accept-Encoding'>'gzip, deflate, sdch, br'</field>
-           <field name='Accept-Language'>'zh-CN,zh;q=0.8'</field>
-           <field name='User-Agent'>'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'</field>
-           <field name='Host'>'www.zhihu.com'</field>,
+           <field name='Connection'>keep-alive</field>
+           <field name='Accept'>text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</field>
+           <field name='Accept-Encoding'>gzip, deflate, sdch, br</field>
+           <field name='Accept-Language'>zh-CN,zh;q=0.8</field>
+           <field name='User-Agent'>Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36</field>
+           <field name='Host'>www.zhihu.com</field>,
            <field name='Upgrade-Insecure-Requests'>1</field>
     </item>
+    <item name="proxies"  need = "true">
+        <field name="1"></field>
+        <field name="2"></field>
+        <field name="3"></field>
+    </item>
+    <item name=""></item>
     <item name="filter" need="true">
         <field name="urlhttp"  action="and">'http://www.zhihu.com/.*'</field>
         <field name="urlhttps" action="or">'https://wwww.zhihu.com/.*'</field>
     </item>
-    <item name="logic" need="true"></item>
 </spider>

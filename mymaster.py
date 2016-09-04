@@ -20,7 +20,7 @@ global distributed_queue
 global bf
 distributed_queue = DistQ.DistributedQueue()
 
-distributed_queue.put("alex-liu-90-89")
+distributed_queue.put("https://www.zhihu.com/people/alex-liu-90-89/followees")
 bf = BFilter.BloomFilter()
 
 
@@ -81,6 +81,7 @@ if __name__ == "__main__":
     #
     print("begin build socket....")
     tcpServSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # tcpServSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     tcpServSock.bind(ADDR)
     tcpServSock.listen(5)
 

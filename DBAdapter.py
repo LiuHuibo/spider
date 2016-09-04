@@ -1,8 +1,11 @@
 #!/bin/python
 #coding=gbk
 import SimpleDB
-class DBAdapter(SimpleDB):
-    def __init__(self):
-        SimpleDB.__init__(self)
+class DBAdapter:
+    def __init__(self,db):
+        db.__init__(self)
         self.name="DBAdapter"
+    def store(self,xml):
+        return 0
+
 

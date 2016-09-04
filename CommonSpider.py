@@ -1,15 +1,16 @@
 #!/bin/python
 #coding=gbk
-import Spider
+import Spider as Sp
 import urllib
 import requests
 import ConfigBean
 import pprint
 
 
-class CommonSpider(Spider):
+class CommonSpider(Sp.Spider):
     def __init__(self):
-        Spider.__init__(self)
+        Sp.Spider.__init__(self)
+        print("CommonSpider init")
         self.mName = "CommonSpider"
         self.mConfigBean = None
         self.mHeaders = None
@@ -19,34 +20,45 @@ class CommonSpider(Spider):
         self.mSession = None
         self.mUrllogin = None
         self.mHomePage = None
+        self.mPostdata = None
         self.action = dict()
-
-    def config_from_bean(self,configbean):
-        self.mConfigBean = configbean
-        self.set_cookies(self, configbean.mCookies.mFields)
-        self.set_header(self, configbean.mHeaders.mFields)
-        self.set_filter(self, configbean.mFilter.mFields)
-        self.set_homePage(self, configbean.mLogin.mUrl)
-        self.set_postdata(self, configbean.mLogin.mFields)
 
     def set_postdata(self, postdata):
         self.mPostdata = urllib.parse.urlencode(postdata).encode(encoding='utf-8')
 
-    def set_homepage(self,url):
+    def set_homepage(self, url):
          self.mHomePage = url
+
     def set_cookies(self, cookies):
-        self.mCookies = self.mConfigBean.mCookies
-        return None
+        self.mCookies = cookies
 
     def set_header(self, headers):
+        self.mHeaders = {
+            'Connection':"keep-alive",
+            'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Encoding':'gzip, deflate, sdch, br',
+            'Accept-Language':'zh-CN,zh;q=0.8',
+            'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+            'Host':'www.zhihu.com',
+            'Upgrade-Insecure-Requests':'1'
+            }
         self.mHeaders = headers
+        pprint.pprint(dict(self.mHeaders))
         return None
 
     def set_filter(self, filter):
         self.mFilter = filter
 
+    def config_from_bean(self, configbean):
+        self.mConfigBean = configbean
+        print("cookies.mFields is",configbean.mCookies.mFields)
+        self.set_cookies(configbean.mCookies.mFields)
+        self.set_header(configbean.mHeaders.mFields)
+        self.set_filter(configbean.mFilter.mFields)
+        self.set_homepage(configbean.mLogin.mUrl)
+        self.set_postdata(configbean.mLogin.mFields)
+
     def login_no_cookies(self):
-        Spider.login()
         r = self.session.post(self.mUrllogin, data=self.mPostdata, headers=self.mHeaders)
         if r.json()['r'] == 1:
             print('Login Failed, reason is:')
@@ -54,8 +66,8 @@ class CommonSpider(Spider):
                 print(r.json()['data'][m])
             print('So we use cookies to login in...')
             has_cookies = False
-            for key in self.cookies:
-                if key != '__name__' and self.cookies[key] != '':
+            for key in self.mCookies:
+                if key != '__name__' and self.mCookies[key] != '':
                     has_cookies = True
                     break
             if has_cookies is False:
@@ -66,7 +78,11 @@ class CommonSpider(Spider):
         return True
 
     def login_use_cookies(self):
+        print("*************longin_use_cookies********************")
+        print(self.mHomePage)
         pprint.pprint(dict(self.mCookies))
+        pprint.pprint(dict(self.mCookies))
+        pprint.pprint(dict(self.mHeaders))
         r = self.mSession.get(self.mHomePage, cookies=self.mCookies, headers=self.mHeaders, verify=False)   # 实现验证码登陆
         #print("r.ending:"+r.encoding)
         #r.encoding='utf-8'
@@ -83,8 +99,14 @@ class CommonSpider(Spider):
         #     print("r-->"+ data.decode("gbk",'ignore'))
         if( r != None ):
              print("status code:"+str(r.status_code))
+             print("************************HomePage*********************")
+             #print("r-->" + (r.content).decode("gbk", 'ignore'))
+             return  r.status_code
+        else:
+            return -1
 
     def create_session(self):
+        requests.packages.urllib3.disable_warnings()
         self.mSession = requests.session()
 
     def login(self):
@@ -94,5 +116,12 @@ class CommonSpider(Spider):
             self.login_no_cookies()
 
     def crawl(self, url):
-        self.mSession.get(url, cookies=self.mCookies, headers=self.mHeaders, verify=False)
-        return None
+        r = self.mSession.get(url, cookies=self.mCookies, headers=self.mHeaders, verify=False)
+        if (r != None):
+            print("**************Crwal Result:"+url+"*********************")
+            #print("r-->"+ (r.content).decode("gbk",'ignore'))
+            print("r-->" + (r.content).decode(r.encoding,'ignore'))
+            return (r.content).decode(r.encoding,'ignore')
+        else:
+            return None
+
