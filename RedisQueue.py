@@ -8,7 +8,7 @@ class RedisQueue(object):
         self.mDb = redis.Redis(**redis_kwargs)
         self.mKey = '%s:%s' % (namespace, name)
 
-    def qsize(self)：
+    def qsize(self):
         return self.mDb.llen(self.mKey)
 
     def empty(self):
@@ -22,9 +22,10 @@ class RedisQueue(object):
             item = self.mDb.blpop(self.mKey, timeout = timeout)
         else:
             item = self.mDb.lpop(self.mKey)
-        if item:
+        if isinstance(item, tuple):
             item = item[1]
-        return item
+        stritem = str(item, encoding='utf-8')
+        return stritem
 
     def get_nowait(self):
         return self.get(False)
@@ -32,4 +33,4 @@ class RedisQueue(object):
 if __name__ == '__main__':
     q = RedisQueue('test')
     q.put('hello world')
-    q.get()
+    print(q.get())

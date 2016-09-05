@@ -12,6 +12,7 @@ import Parser
 import DBAdapter
 import MongoDB
 import Comm
+import traceback
 if __name__ == "__main__":
 
     dbadapter = DBAdapter.DBAdapter(MongoDB.MongoDB)
@@ -31,11 +32,16 @@ if __name__ == "__main__":
         if (not current_url):
             break
         # ÅÀÈ¡Ä£¿é
-        current_html = spider.crawl(current_url)
+        try:
+            current_html = spider.crawl(current_url)
+        except:
+            print("crawl exception")
+            continue
         to_send = []
+
         next_urls = parser.extract_urls(current_html)
         if (next_urls):
-            for next_url in parser.extract_urls(current_html, None):
+            for next_url in next_urls:
                 to_send.append(next_url)
                 print("next_url--->" + next_url)
             dbadapter.store(current_html)

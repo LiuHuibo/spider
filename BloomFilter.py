@@ -7,6 +7,7 @@ class BloomFilter:
 
 	def put(self,item):
 		if item not in self.visited:
+			self.visited.add(item)
 			return 0
 		else:
 			return -1

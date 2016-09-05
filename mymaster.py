@@ -11,16 +11,18 @@ import os
 import time
 from multiprocessing import Process
 import logging
+import RedisQueue as RQ
 HOST = 'localhost'
 PORT = 5008
 BUFSIZ = 40960
 ADDR = (HOST, PORT)
 # main
-global distributed_queue
+#global distributed_queue
 global bf
-distributed_queue = DistQ.DistributedQueue()
+redis_queue = RQ.RedisQueue('master')
+redis_queue.put("https://www.zhihu.com/people/alex-liu-90-89/followees")
 
-distributed_queue.put("https://www.zhihu.com/people/alex-liu-90-89/followees")
+#distributed_queue.put("https://www.zhihu.com/people/alex-liu-90-89/followees")
 bf = BFilter.BloomFilter()
 
 
@@ -34,9 +36,9 @@ def run_proc(name,serverSock,clientSock,buffersize=40960):
         request = json_data["ACTION"]
         if (request == 'GET'):
             print("GO TO GET")
-            if (distributed_queue.size() > 0):
+            if (redis_queue.qsize() > 0):
                 num = json_data["NUM"]
-                send(clientSock, distributed_queue.get())
+                send(clientSock, redis_queue.get())
                 print("get url ok")
             else:
                 print("get url fail")
@@ -44,7 +46,7 @@ def run_proc(name,serverSock,clientSock,buffersize=40960):
             urls = json_data["URLS"]
             for url in urls:
                 if (bf.put(url) == 0):
-                    distributed_queue.put(url)
+                    redis_queue.put(url)
                     print("put url ok---- " + str(url))
         else:
             print("Error Input")
