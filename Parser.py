@@ -18,7 +18,8 @@ class Parser:
             # print("href.text=>",href.text)
             if 'href' in href.attrib.keys():
                 url = href.attrib['href']
-                urls.append(url)
+                if (url.startswith("http://") or url.startswith("https://")) and (not url.endswith(".png") or not url.endswith(".jpg")):
+                    urls.append(url)
         if (len(urls) > 0):
             return urls
         else:

@@ -45,7 +45,7 @@ def run_proc(name,serverSock,clientSock,buffersize=40960):
         elif (request == 'POST'):
             urls = json_data["URLS"]
             for url in urls:
-                if (bf.put(url) == 0):
+                if ( not bf.is_contaions(url)):
                     redis_queue.put(url)
                     print("put url ok---- " + str(url))
         else:
