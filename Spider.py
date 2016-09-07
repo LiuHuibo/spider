@@ -4,6 +4,9 @@ class Spider:
     def __init__(self):
         print("Spider init")
         self.mName = "Spider"
+        
+    def get_name(self):
+        return self.mName
 
     def config_from_bean(self, configbean):
         return None

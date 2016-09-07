@@ -13,6 +13,7 @@ import DBAdapter
 import MongoDB
 import Comm
 import traceback
+from datetime import *
 if __name__ == "__main__":
 
     dbadapter = DBAdapter.DBAdapter(MongoDB.MongoDB)
@@ -44,7 +45,20 @@ if __name__ == "__main__":
             for next_url in next_urls:
                 to_send.append(next_url)
                 print("next_url--->" + next_url)
-            dbadapter.store(current_html)
+            
+            now = datetime.now()
+            time = now.isoformat()
+            spidername = spider.get_name()
+            url = current_html
+            param = ''
+            method = 'get'
+            title = ''
+            html = current_html
+            data = {"time":time, "spidername":spidername, "url":url, 
+                    "param":param,"method":method, "title":title,"html":html}
+            json_data = json.dumps(data)
+
+            dbadapter.store("zhihu.com",json_data)
             comm.send_to_master(to_send)
     comm.close()
 
