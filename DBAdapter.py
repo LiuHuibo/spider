@@ -4,14 +4,18 @@ import SimpleDB
 
 
 class DBAdapter:
-    def __init__(self,db):
-        db.__init__(self)
-        self.name="DBAdapter"
-
-    def store(self,  name, data):
-        db.store(name, data)
-        return 0
-
+    def __init__(self):
+        self.name = "DBAdapter"
+    def conn(self):
+        pass
+    def dis_connect(self):
+        pass
+    def commit(self):
+        pass
+    def rollback(self):
+        pass
+    def store(self, table, data):
+        pass
     def acquire(self, key):
-        return 0
+        pass
 

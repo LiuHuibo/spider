@@ -1,9 +1,14 @@
 #!/bin/python
 #coding=gbk
-import time
+
+from DBAdapter import *
 from pymongo import MongoClient
-class MongoDB:
+
+
+class MongoDB( DBAdapter ):
+
     def __int__(self,host,port,dbname,username,passwd):
+        DBAdapter.__init__()
         self.mName = "MongoDB"
         self.mHost = host
         self.mPort = port
@@ -17,14 +22,14 @@ class MongoDB:
         self.mDB = self.mClient[self.mDbname]
 
     def get_collection(self,collectionname):
-        return  self.mDB[collectionname]
+        return self.mDB[collectionname]
 
     def store(self,collection,data):
         self.insert(collection,data)
         return 0
         
-    #---------------------KEY: 时间戳------------------#
+    #---------------------KEY: 时间�?------------------#
     #---------------url,timestamp,---------------------#
     def insert(self,collection,data):
         self.mDB.collection.insert(data)
-        return  0
+        return 0
