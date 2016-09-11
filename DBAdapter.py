@@ -1,21 +1,30 @@
 #!/bin/python
 #coding=gbk
-import SimpleDB
 
 
 class DBAdapter:
-    def __init__(self):
-        self.name = "DBAdapter"
+
+    def __init__(self, host, port, ** optionsdic):
+        pass
+
     def conn(self):
         pass
+
     def dis_connect(self):
         pass
+
     def commit(self):
         pass
+
     def rollback(self):
         pass
-    def store(self, table, data):
+
+    def store(self, table, json_data):
         pass
-    def acquire(self, key):
+
+    def query(self, table, json_key):
+        pass
+
+    def update(self,table, json_data):
         pass
 

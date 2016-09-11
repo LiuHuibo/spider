@@ -120,8 +120,23 @@ class CommonSpider(Sp.Spider):
         if (r != None):
             print("**************Crwal Result:"+url+"*********************")
             #print("r-->"+ (r.content).decode("gbk",'ignore'))
-            print("r-->" + (r.content).decode(r.encoding,'ignore'))
+            #print("r-->" + (r.content).decode(r.encoding,'ignore'))
             return (r.content).decode(r.encoding,'ignore')
         else:
             return None
+
+    def crawl(self, url, handler_function = None, ** handlerargs):
+        result = None
+        r = self.mSession.get(url, cookies=self.mCookies, headers=self.mHeaders, verify=False)
+        if (r != None):
+            print("**************Crwal Result:"+url+"*********************")
+            if (handler_function  != None):
+                result = handler_function(r,** handler_function)
+            else:
+                result = (r.content).decode(r.encoding,'ignore')
+            return result
+        else:
+            return None
+
+
 

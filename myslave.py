@@ -10,14 +10,17 @@
 import SpiderFactory
 import Parser
 import DBAdapter
-import MongoDB
+from MongoDB import *
 import Comm
 import traceback
-from datetime import *
+from  datetime  import  *
+import time
 import json
 if __name__ == "__main__":
 
-    dbadapter = DBAdapter.DBAdapter(MongoDB.MongoDB)
+    optionsdic = {'dbname': 'testdb', 'username': 'liuhb', 'passwd': '123456'}
+    mongodb = MongoDB('localhost', 27017, **optionsdic)
+    mongodb.conn()
 
     spiderFactory = SpiderFactory.SpiderFactory("config.xml")
     spider = spiderFactory.get_spider()
@@ -39,29 +42,27 @@ if __name__ == "__main__":
         except:
             print("crawl exception")
             continue
+        #print("crawl------------->", current_url)
         to_send = []
-
         next_urls = parser.extract_urls(current_html)
         if (next_urls):
             for next_url in next_urls:
                 to_send.append(next_url)
-                print("next_url--->" + next_url)
-            
-            now = datetime.now()
-            time = now.isoformat()
+                #print("next_url--->" + next_url)
             spidername = spider.get_name()
-            url = current_html
-            param = ''
-            method = 'get'
-            title = ''
-            html = current_html
-            data = {"time":time, "spidername":spidername, "url":url, 
-                    "param":param,"method":method, "title":title,"html":html}
-            json_data = json.dumps(data)
-
-            dbadapter.store("zhihu.com",json_data)
+            collection = "CommSpider"
+            data = {
+                     "time":str(datetime.utcnow()),
+                     "url":current_url,
+                     "param":'',
+                     "method":'GET',
+                     "title":'',
+                     "html":current_html
+                     }
+            mongodb.store(collection, data)
             comm.send_to_master(to_send)
     comm.close()
+    mongodb.dis_connect()
 
 
 

@@ -1,0 +1,25 @@
+method :POST
+url: https://www.zhihu.com/people/(.*)/followers
+target_url:https://www.zhihu.com/node/ProfileFollowersListV2
+param:
+        method ：next
+        params ：{"offset":$1,"order_by":"created","hash_id":"$2"}
+value:
+    $1 :[1:100:$3]
+        <body class="zhi">
+            <div class="zg-wrap zu-main clearfix" role="main">
+                <div class="zu-main-content">
+                    <div class="zm-profile-section-head">
+                        <span class="zm-profile-section-name">
+                            <a href="/people/edtall">孙志超</a>
+                                被 164855 人关注
+                        </span>
+                        <a class="zg-right zg-link-litblue-normal zm-profile-answer-page-return" href="/people/edtall">返回个人主页</a>
+                    </div>
+                <div/>
+            </div>
+        </body>
+    $2 :
+
+
+
